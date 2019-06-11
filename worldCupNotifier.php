@@ -256,7 +256,7 @@ foreach ($matches as $match)
                 "Home" => $match["Home"]["TeamName"][0]["Description"],
                 "Away" => $match["Away"]["TeamName"][0]["Description"]
             ],
-            'last_update' => microtime()
+            'last_update' => time()
         );
 
         // notify slack & save data
@@ -278,7 +278,7 @@ foreach ($db['live_matches'] as $key => $matchId)
 {
     $homeTeamName = $db[$matchId]['teamsByHomeAway']["Home"];
     $awayTeamName = $db[$matchId]['teamsByHomeAway']["Away"];
-    $lastUpdateSeconds = explode(" ", $db[$matchId]['last_update'])[1];
+    $lastUpdateSeconds = $db[$matchId]['last_update'];
 
     // Retrieve match events
     $response = json_decode(getUrl('https://api.fifa.com/api/v1/timelines/'.ID_COMPETITION.'/'.ID_SEASON.'/'.$db[$matchId]['stage_id'].'/'.$matchId.'?language='.LOCALE), true);
@@ -295,7 +295,7 @@ foreach ($db['live_matches'] as $key => $matchId)
         $eventType = $event["Type"];
         $period = $event["Period"];
         $eventTimeSeconds = strtotime($event["Timestamp"]);
-        if ($eventTimeSeconds > $lastUpdateSeconds)
+        if (($eventTimeSeconds > $lastUpdateSeconds) && (time() > $eventTimeSeconds + 90))
         {
             $matchTime = $event["MatchMinute"];
 
@@ -411,7 +411,7 @@ foreach ($db['live_matches'] as $key => $matchId)
 
             if ($interestingEvent) {
                 postToSlack($subject, $details);
-                $db[$matchId]['last_update'] = microtime();
+                $db[$matchId]['last_update'] = strtotime($event["Timestamp"]);
             }
         }
     }
