@@ -11,8 +11,8 @@
  *   - for every penalty
  *   - and of course, for every goal
  *
- * You will need a token from Slack.
- * Jump at https://api.slack.com/custom-integrations/legacy-tokens and you will find your token.
+ * You will need an incoming webhook URL from Slack.
+ * See the README file for how to get that.
  *
  * @author j0k <jeremy.benoist@gmail.com>
  * @license MIT
@@ -22,11 +22,8 @@
  * All the configuration are just below
  */
 
-// Slack stuff
-const SLACK_TOKEN      = 'XXXXXXXXXXXXXXXX';
-const SLACK_CHANNEL    = '#worldcup';
-const SLACK_BOT_NAME   = 'WorldCup Bot';
-const SLACK_BOT_AVATAR = 'https://i.imgur.com/Pd0cpqE.png';
+// Slack incoming webhook URL
+const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/xxxxxxxxxxxxxxxxxxxxxxxx';
 
 const USE_PROXY     = false;
 const PROXY         = 'http://myproxy:3128';
@@ -198,19 +195,26 @@ function getUrl($url, $doNotUseEtag = false)
  */
 function postToSlack($text, $attachments_text = '')
 {
-    $slackUrl = 'https://slack.com/api/chat.postMessage?token='.SLACK_TOKEN.
-    '&channel='.urlencode(SLACK_CHANNEL).
-    '&username='.urlencode(SLACK_BOT_NAME).
-    '&icon_url='.SLACK_BOT_AVATAR.
-    '&unfurl_links=1&parse=full&pretty=1'.
-    '&text='.urlencode($text);
 
-    if ($attachments_text)
-    {
-        $slackUrl .= '&attachments='.urlencode('[{"text": "'.$attachments_text.'"}]');
-    }
+    $data = array(
+       'text'        => $text,
+       'attachments' => array( array( 'text' => $attachments_text ) )
+    );
 
-    var_dump(getUrl($slackUrl));
+
+    $options = array(
+      'http' => array(
+        'method'  => 'POST',
+        'content' => json_encode( $data ),
+        'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n"
+        )
+    );
+
+    $context  = stream_context_create( $options );
+    $result   = file_get_contents( SLACK_WEBHOOK_URL, false, $context );
+    $response = json_decode( $result );
+
 }
 
 function getEventPlayerAlias($eventPlayerId)

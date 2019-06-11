@@ -19,9 +19,11 @@ Here is a preview of the Colombia vs Japan match.
 ### Requirements
 
   - PHP >= 5.3
-  - You need a token from Slack:
-    - Jump at https://api.slack.com/custom-integrations/legacy-tokens (you have to login)
-    - and you will find your token.
+  - You need an incoming webhook URL from Slack:
+    - Create an app at https://api.slack.com/apps?new_app=1
+    - Go to your app details page at https://api.slack.com
+    - Go to "Incoming webhooks" on left navigation
+    - and you will find your URL.
 
 ### Installation
 
