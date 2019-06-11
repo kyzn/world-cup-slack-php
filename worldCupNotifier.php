@@ -410,7 +410,7 @@ foreach ($db['live_matches'] as $key => $matchId)
 
                 default:
                     $interestingEvent = false;
-                    continue;
+                    continue 2;
             }
 
             if ($interestingEvent) {
