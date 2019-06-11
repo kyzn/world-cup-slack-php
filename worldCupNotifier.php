@@ -75,8 +75,12 @@ $language = array(
  */
 
 // 2018 World Cup
-const ID_COMPETITION = 17;
-const ID_SEASON = 254645;
+// const ID_COMPETITION = 17;
+// const ID_SEASON = 254645;
+
+// 2019 Women's World Cup
+const ID_COMPETITION = 103;
+const ID_SEASON = 278513;
 
 // Match Statuses
 const MATCH_STATUS_FINISHED = 0;
