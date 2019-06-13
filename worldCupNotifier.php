@@ -304,9 +304,13 @@ foreach ($db['live_matches'] as $key => $matchId)
             $matchTime = $event["MatchMinute"];
 
             $teamsById = $db[$matchId]['teamsById'];
-            $eventTeam = $teamsById[$event["IdTeam"]];
-            unset($teamsById[$event["IdTeam"]]);
-            $eventOtherTeam = reset($teamsById);
+            $eventTeam = '';
+            $eventOtherTeam = '';
+            if (isset($event["IdTeam"])){
+                $eventTeam = $teamsById[$event["IdTeam"]];
+                unset($teamsById[$event["IdTeam"]]);
+                $eventOtherTeam = reset($teamsById);
+            }
             $eventPlayerAlias = null;
 
             $score = $homeTeamName.' '.$event["HomeGoals"].' - '.$event["AwayGoals"].' '.$awayTeamName;
