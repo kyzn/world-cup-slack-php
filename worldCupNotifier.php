@@ -50,6 +50,17 @@ $language = array(
         'Mi-temps de la prolongation',
         'Fin de la prolongation',
         'Fin de la séance de tirs au but',
+        'VAR review in progress for ',
+        'VAR decision: ',
+        'goal',
+        'penalty',
+        'red card',
+        'it\'s a goal!!! ',
+        'it\'s NOT a goal!',
+        'it\'s a PENALTY!',
+        'no penalty!',
+        'no red card!',
+        'no change!',
     ),
     'en-GB' => array(
         'The match between',
@@ -67,6 +78,17 @@ $language = array(
         'END OF 1ST ET',
         'END OF 2ND ET',
         'END OF PENALTY SHOOTOUT',
+        'VAR review in progress for ',
+        'VAR decision: ',
+        'goal',
+        'penalty',
+        'red card',
+        'it\'s a goal!!! ',
+        'it\'s NOT a goal!',
+        'it\'s a PENALTY!',
+        'no penalty!',
+        'no red card!',
+        'no change!',
     )
 );
 
@@ -102,7 +124,29 @@ const EVENT_PENALTY_GOAL = 41;
 const EVENT_PENALTY_SAVED = 60;
 const EVENT_PENALTY_CROSSBAR = 46;
 const EVENT_PENALTY_MISSED = 65;
+const EVENT_VAR_ACTIVITY = 71;
 const EVENT_FOUL_PENALTY = 72;
+
+// Var Types
+const VAR_INCIDENT_GOAL = 1;
+const VAR_INCIDENT_NO_GOAL = 2;
+const VAR_INCIDENT_PENALTY = 3;
+const VAR_INCIDENT_NO_PENALTY = 4;
+const VAR_INCIDENT_RED_CARD = 5;
+const VAR_INCIDENT_NO_RED_CARD = 6;
+
+const VAR_STATUS_WATCHING = 0;
+const VAR_STATUS_REVIEW = 1;
+const VAR_STATUS_ONFIELD_REVIEW = 2;
+const VAR_STATUS_VAR_DECISION = 3;
+const VAR_STATUS_ONFIELD_DECISION = 4;
+
+const VAR_RESULT_GOAL = 1;
+const VAR_RESULT_NO_GOAL = 2; // Maybe?
+const VAR_RESULT_PENALTY = 3;
+const VAR_RESULT_NO_PENALTY = 4;
+const VAR_RESULT_NO_RED_CARD = 7; // Maybe?
+const VAR_RESULT_NO_CHANGE = 9;
 
 // Periods
 const PERIOD_1ST_HALF = 3;
@@ -318,6 +362,15 @@ foreach ($db['live_matches'] as $key => $matchId)
             $details = '';
             $interestingEvent = true;
 
+            // Description from API
+            $description = '';
+            $descriptionArray = $event["EventDescription"];
+            if(count($descriptionArray > 0)){
+              if(isset($descriptionArray[0]["Description"])){
+                $description = $descriptionArray[0]["Description"];
+              }
+            }
+
             switch ($eventType) {
                 // Timekeeping
                 case EVENT_PERIOD_START:
@@ -402,6 +455,79 @@ foreach ($db['live_matches'] as $key => $matchId)
 
                     if ($period === PERIOD_PENALTY) {
                         $details .= ' ('.$event["HomePenaltyGoals"].' - '.$event["AwayPenaltyGoals"].')';
+                    }
+                    break;
+
+                // VAR
+
+                case EVENT_VAR_ACTIVITY:
+                    $var_status   = $event["VarDetail"]["Status"];
+                    $var_incident = $event["VarDetail"]["Incident"];
+                    $var_result   = $event["VarDetail"]["Result"];
+                    $subject      = ':tv: ';
+                    $details      = $matchTime .', '. $score.'.';
+                    switch($var_status){
+
+                        case VAR_STATUS_REVIEW:
+                        case VAR_STATUS_ONFIELD_REVIEW:
+                            $subject .= $language[LOCALE][15];
+                            switch($var_incident){
+                                case VAR_INCIDENT_GOAL:
+                                case VAR_INCIDENT_NO_GOAL:
+                                    $subject .= $language[LOCALE][17];
+                                    break;
+                                case VAR_INCIDENT_PENALTY:
+                                case VAR_INCIDENT_NO_PENALTY:
+                                    $subject .= $language[LOCALE][18];
+                                    break;
+                                case VAR_INCIDENT_RED_CARD:
+                                case VAR_INCIDENT_NO_RED_CARD:
+                                    $subject .= $language[LOCALE][19];
+                                    break;
+                                default:
+                                    $subject = '';
+                                    $details = '';
+                                    break;
+                            }
+                            break;
+
+                        case VAR_STATUS_VAR_DECISION:
+                        case VAR_STATUS_ONFIELD_DECISION:
+                            $subject .= $language[LOCALE][16];
+                            if (isset($description)){
+                                $details .= ' ' . $description;
+                            }
+                            switch($var_result){
+                                case VAR_RESULT_GOAL:
+                                    $subject .= $language[LOCALE][20];
+                                    break;
+                                case VAR_RESULT_NO_GOAL:
+                                    $subject .= $language[LOCALE][21];
+                                    break;
+                                case VAR_RESULT_PENALTY:
+                                    $subject .= $language[LOCALE][22];
+                                    break;
+                                case VAR_RESULT_NO_PENALTY:
+                                    $subject .= $language[LOCALE][23];
+                                    break;
+                                case VAR_RESULT_NO_RED_CARD:
+                                    $subject .= $language[LOCALE][24];
+                                    break;
+                                case VAR_RESULT_NO_CHANGE:
+                                    $subject .= $language[LOCALE][25];
+                                    break;
+                                default:
+                                    $subject = '';
+                                    $details = '';
+                                    break;
+                            }
+                            break;
+
+                        default:
+                            $subject = '';
+                            $details = '';
+                            break;
+
                     }
                     break;
 
